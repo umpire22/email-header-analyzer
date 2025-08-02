@@ -55,8 +55,13 @@ def analyze_header(header_text):
     from_match = re.search(r'From:\s*(.*)', header_text, re.IGNORECASE)
     return_path_match = re.search(r'Return-Path:\s*<(.*)>', header_text, re.IGNORECASE)
     if from_match and return_path_match:
-        if from_match.group(1).strip() != return_path_match.group(1).strip():
-            red_flags.append("❗ Mismatch between From and Return-Path")
+        # Check From vs Return-Path mismatch (email address only)
+if from_match and return_path_match:
+    from_email = re.search(r'[\w\.-]+@[\w\.-]+', from_match.group(1))
+    return_email = re.search(r'[\w\.-]+@[\w\.-]+', return_path_match.group(1))
+    if from_email and return_email and from_email.group(0).lower() != return_email.group(0).lower():
+        red_flags.append("❗ Mismatch between From and Return-Path")
+
 
     # Extract IPs from Received headers
     received_ips = re.findall(r'Received:.*\[(\d{1,3}(?:\.\d{1,3}){3})\]', header_text)
